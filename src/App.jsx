@@ -1,32 +1,60 @@
-import React, { useState } from 'react'
-import List from './List'
-import data from './data'
 
+import React, { useEffect, useState } from "react";
+import Loading from "./Loading";
+import Tours from "./Tours";
+const url = "https://www.course-api.com/react-tours-project";
+import "./index.css"
 
 function App() {
-  const [datas, setDatas] = useState(data);
-  const [isListVisible, setListVisible] = useState(true); 
-  const handleClear=()=>{
-     if (datas.length===0) {
-      setDatas(data);
-      setListVisible(true);
-     } else {
-      setDatas([]);
-      setListVisible(false);
-     }
+  const [loading, setLoading] = useState(true);
+  const [tours, setTours] = useState([]);
+ const deleteTour = (id) => {
+    const newTours=tours.filter((tour)=>tour.id!==id);
+    setTours(newTours);
+ };
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(url);
+      const toursData = await response.json();
+      setLoading(false);
+      setTours(toursData);
+    } catch (error) {
+      console.error("Error bro!");
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <main>
+        <Loading />
+      </main>
+    );
   }
-  return (
-    <div>
-      <section className="container">
-        <h3> {datas.length > 0?<h3 style={{display:'inline-block'}}>{datas.length}</h3>:<h1>0</h1>} birthdays today</h3>
-        <div>
-          <List data={datas}/>
-          <button onClick={handleClear}>{datas.length>0? <span>Remove List</span>:<span>Add List</span>}</button>
-        
+  const handleRefresh=()=>{
+    fetchData();
+  }
+  if(tours.length<=0){
+    return (
+      <main>
+        <div className="title">
+          <h2>No tour availabel</h2>
+          <button className="btn" onClick={handleRefresh}>Refresh</button>
         </div>
-      </section>
-    </div>
-  )
+      </main>
+    );
+  }
+
+  return (
+    <main>
+      <Tours tours={tours} deleteTour={deleteTour} />
+    </main>
+  );
 }
 
-export default App
+export default App;
